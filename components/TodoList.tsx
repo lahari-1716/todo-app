@@ -1,91 +1,106 @@
-import React from 'react';
-import ListItems from './Todo';
+import React from "react";
+import ListItems from "./Todo";
+import fire from "../firebase";
+import firebase from "firebase";
 
-type MyProps={
-  items:any;
-  currentItem:{text:any, key:any}
-}
+type MyProps = {
+  items: string;
+  currentItem: { text: string; key: any };
+};
 
-type MyState ={
+type MyState = {
   items: any;
-  currentItem:{text:any, key:any}
-}
+  currentItem: { text: string; key: any };
+};
 
-
-class TodoList extends React.Component<MyProps,MyState> {
-  constructor(props:MyProps){
+class TodoList extends React.Component<MyProps, MyState> {
+  constructor(props: MyProps) {
     super(props);
     this.state = {
-      items:[],
-      currentItem:{
-        text:'',
-        key:''
-      }
-    }
+      items: [],
+      currentItem: {
+        text: "",
+        key: "",
+      },
+    };
     this.addItem = this.addItem.bind(this);
     this.handleInput = this.handleInput.bind(this);
-    this.deleteItem =this.deleteItem.bind(this);
+    this.deleteItem = this.deleteItem.bind(this);
     this.setUpdate = this.setUpdate.bind(this);
-  
   }
 
-  addItem(e: React.FormEvent<HTMLFormElement>){
+  addItem(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    fire.collection("todo").add({
+      inprogress: true,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      todo: this.state.currentItem,
+    });
     const newItem = this.state.currentItem;
-    if(newItem.text !==""){
+    if (newItem.text !== "") {
       const items = [...this.state.items, newItem];
-    this.setState({
-      items: items,
-      currentItem:{
-        text:'',
-        key:''
-      }
-    })
+      this.setState({
+        items: items,
+        currentItem: {
+          text: "",
+          key: "",
+        },
+      });
     }
   }
-  handleInput(e: React.FormEvent<HTMLInputElement>){
+  handleInput(e: React.FormEvent<HTMLInputElement>) {
     this.setState({
-      currentItem:{
+      currentItem: {
         text: e.currentTarget.value,
-        key: Date.now()
-      }
-    })
+        key: Date.now(),
+      },
+    });
   }
- 
-  deleteItem(key: any){
-    const filteredItems= this.state.items.filter((item: { key: any; }) =>
-      item.key!==key);
-    this.setState({
-      items: filteredItems
-    })
 
-  }
-  setUpdate(text: any,key: string){
-    console.log("items:"+this.state.items);
-    const items = this.state.items;
-    items.map((item: { key: string; text: any; })=>{      
-    if(item.key===key){
-        console.log(item.key +"    "+key)
-        item.text= text;
-      }
-    })
+  deleteItem(key: any) {
+    const filteredItems = this.state.items.filter(
+      (item: { key: any }) => item.key !== key
+    );
     this.setState({
-      items: items
-    }) }
- 
- 
-render(){
-  return (
-    <div className="App">
-      <header>
-        <form id="to-do-form" onSubmit={this.addItem}>
-          <input type="text" placeholder="What about Today?" value= {this.state.currentItem.text} onChange={this.handleInput}></input>
-          <button type="submit">Add</button>
-        </form>
-        <p>{this.state.items.text}</p>
-        <ListItems items={this.state.items} deleteItem={this.deleteItem} setUpdate={this.setUpdate}/>
-      </header>
-      <style>{`body{
+      items: filteredItems,
+    });
+  }
+
+  setUpdate(text: any, key: string) {
+    console.log("items:" + this.state.items);
+    const items = this.state.items;
+    items.map((item: { key: string; text: any }) => {
+      if (item.key === key) {
+        console.log(item.key + "    " + key);
+        item.text = text;
+      }
+    });
+    this.setState({
+      items: items,
+    });
+  }
+
+  render() {
+    return (
+      <div className="App">
+        <header>
+          <form id="to-do-form" onSubmit={this.addItem}>
+            <input
+              type="text"
+              placeholder="What about Today?"
+              value={this.state.currentItem.text}
+              onChange={this.handleInput}
+            ></input>
+            <button type="submit">Add</button>
+          </form>
+          <p>{this.state.items.text}</p>
+          <ListItems
+            items={this.state.items}
+            deleteItem={this.deleteItem}
+            setUpdate={this.setUpdate}
+          />
+        </header>
+        <style>{`body{
   background-color: white;
 }
 .App{
@@ -124,10 +139,9 @@ render(){
   outline: none;
 }
       `}</style>
-    </div>
-  );
- }
+      </div>
+    );
+  }
 }
-
 
 export default TodoList;
